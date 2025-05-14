@@ -1,6 +1,7 @@
 use axum::{Extension, Router, routing::post};
 
 pub mod dtos;
+pub mod extract;
 pub mod records;
 pub mod routes;
 pub mod service;

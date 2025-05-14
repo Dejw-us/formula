@@ -12,7 +12,7 @@ use crate::{
   error::{Error, Result},
   surreal::PasswordQuery,
   user::{
-    dtos::{LoginUser, RegisterUser},
+    dtos::{LoginUser, RegisterUser, Tokens},
     records::{NoId, User},
     service::{self, generate_token},
     table::USERS,
@@ -20,21 +20,22 @@ use crate::{
 };
 
 pub async fn login_user(db: Extension<Db>, body: Json<LoginUser>) -> Result<Response<String>> {
-  let start = Instant::now();
   let query = format!("SELECT * FROM user WHERE username='{}'", body.username);
   let mut res = db.query(query).await?;
   let password: Option<PasswordQuery> = res.take(0)?;
-  let elapsed = start.elapsed().as_millis();
 
-  println!("Db time: {}ms", elapsed);
-  let start = Instant::now();
-  let res = match password {
+  match password {
     Some(query) => {
       if query.password.verify(&body.password)? {
+        let token = generate_token(&body.username)?;
+        let body = Tokens {
+          access_token: token,
+        };
         Ok(
           Response::builder()
             .status(StatusCode::OK)
-            .body(generate_token(&body.username).unwrap())
+            .header(CONTENT_TYPE, "application/json")
+            .body(serde_json::to_string(&body)?)
             .unwrap(),
         )
       } else {
@@ -47,10 +48,7 @@ pub async fn login_user(db: Extension<Db>, body: Json<LoginUser>) -> Result<Resp
       }
     }
     None => Err(Error::BadRequest(Some("User does not exist".to_string()))),
-  };
-  let elapsed = start.elapsed().as_millis();
-  println!("Match time: {}ms", elapsed);
-  res
+  }
 }
 
 pub async fn register_user(

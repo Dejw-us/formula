@@ -2,6 +2,7 @@ use std::fmt::Debug;
 
 use axum::{http::StatusCode, response::IntoResponse};
 use bcrypt::BcryptError;
+use jsonwebtoken::errors;
 
 pub type Result<T> = std::result::Result<T, Error>;
 
@@ -49,5 +50,12 @@ impl From<serde_json::error::Error> for Error {
   fn from(error: serde_json::error::Error) -> Self {
     Self::log_error(error);
     Self::Serialization
+  }
+}
+
+impl From<errors::Error> for Error {
+  fn from(error: errors::Error) -> Self {
+    Self::log_error(error);
+    Self::Server
   }
 }

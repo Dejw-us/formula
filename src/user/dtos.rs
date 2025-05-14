@@ -1,5 +1,5 @@
 use bcrypt::BcryptError;
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
 use crate::error::Error;
 
@@ -30,4 +30,9 @@ impl TryInto<User<NoId>> for RegisterUser {
 pub struct LoginUser {
   pub username: String,
   pub password: String,
+}
+
+#[derive(Serialize, Debug)]
+pub struct Tokens {
+  pub access_token: String,
 }

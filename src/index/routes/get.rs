@@ -5,9 +5,14 @@ use axum::{
   response::IntoResponse,
 };
 
-use crate::{db::Db, index::templates::IndexView, user::dtos::LoginUser};
+use crate::{
+  db::Db,
+  index::templates::IndexView,
+  user::{dtos::LoginUser, extract::AccessToken},
+};
 
-pub async fn index() -> Result<impl IntoResponse, StatusCode> {
+pub async fn index(token: AccessToken) -> Result<impl IntoResponse, StatusCode> {
+  println!("Access token: {:?}", token);
   let view = IndexView;
   let body = view
     .render()
